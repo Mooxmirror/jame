@@ -1,0 +1,45 @@
+<html>
+<body style="font-family: Consolas">
+    <textarea id="codeText" style="width: 800px; height: 600px; margin: auto; font-family: Consolas; font-size: 1em">// Here goes your code
+MOV 2b 1f
+MOV 2b 1e
+// Test comment
+MOV 2c 1d
+OUT 0 1d</textarea>
+    <textarea id="consoleText" style="width: 800px; height: 600px; margin: auto; font-family: Consolas; font-size: 1em"></textarea>
+    <script>
+    var jameRuntime = null;
+
+    console.log = function(t1, t2, t3, t4, t5) {
+        var line = "";
+        if (t1 !== undefined) {
+            line += t1 + " ";
+        }
+        if (t2 !== undefined) {
+            line += t2 + " ";
+        }
+        if (t3 !== undefined) {
+            line += t3 + " ";
+        }
+        if (t4 !== undefined) {
+            line += t4 + " ";
+        }
+        if (t5 !== undefined) {
+            line += t5 + " ";
+        }
+
+        line += "\n";
+        document.getElementById("consoleText").value += line;
+    };
+
+    function run() {
+        jameRuntime = new Jame(document.getElementById("codeText").value, true);
+        jameRuntime.start();
+    }
+    </script>
+    <script src="jame.js">
+    </script>
+
+    <p onclick="run()">Run your code</p>
+</body>
+</html>
