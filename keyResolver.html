@@ -1,0 +1,31 @@
+<html>
+    <body>
+        <h1 id="screen">Key resolver for jameJS console output</h1>
+        <input type="number" id="offsetElement" value="0"/>
+        <input type="number" id="deviceElement" value="0x00" />
+        <input type="text" id="inputElement"/>
+        <textarea id="mov"></textarea>
+        <textarea id="out"></textarea>
+        <script>
+            var CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ?!,;.:-_=#'+*()[]<>/\\\n";
+            function resolveKey(char) {
+                for (var i = 0; i < CHAR_SET.length; i++) {
+                    if (CHAR_SET[i] === char) {
+                        return i;
+                    }
+                }
+            }
+            document.getElementById("inputElement").addEventListener("keyup", function(k) {
+                document.getElementById("mov").value = "";
+                document.getElementById("out").value = "";
+                var device = parseInt(document.getElementById("deviceElement").value);
+                var offset = parseInt(document.getElementById("offsetElement").value);
+                for (var i = 0; i < document.getElementById("inputElement").value.length; i += 1) {
+                    var index = resolveKey(document.getElementById("inputElement").value[i]);
+                    document.getElementById("mov").value += "MOV 0x" + index.toString(16) + " 0x" + (i + offset).toString(16) + "\n";
+                    document.getElementById("out").value += "OUT 0x" + (i + offset).toString(16) + " 0x" + device.toString(16) + "\n";
+                }
+            });
+        </script>
+    </body>
+</html>

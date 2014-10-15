@@ -1,4 +1,4 @@
 jame
 ====
 
-A machine emulator for learning purposes.
+A JavaScript machine emulator.
