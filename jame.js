@@ -1,6 +1,3 @@
-console.log("jameJS v0.1.0");
-
-
 /*
 a - z -> data addresses
 * means implemented
@@ -14,18 +11,22 @@ DIV *    x     /     y // Division, stores result in x
 MOD *    x     %     y // Modulo, stores result in x
 
 CMP *    x           y // Compares the values, stores result in x (0 -> x smaller, 1 -> equal, 2 -> x greater)
-MRK *    x             // Marks the line with a adress stored in x
-JMP     x             // Jumps to the line adress stored in x
-JIF     x           y // Jumps to the line adress stored in x, when y equals 1
+MRK *    x             // Marks the line with the marker adress stored in x
+JMP     x             // Jumps to the marker adress stored in x
+JIF     x           y // Jumps to the marker adress stored in x, when y equals 1
 
 LDM *    x           y // Loads data from volatile memory into register
 STM *    x           y // Stores data from register in volatile memory
 
-CPY *    x           y // Copies the value from x to y
+CPY *    x           y // Copies the value from y to x
 MOV *    HexNumber   x // Moves the value into register x
 OUT *    DeviceID    x // Sends data from the register to the device
 IN      DeviceID    x // Receives data from the device stack (-1 -> no data available)
+
+TIM *    x          // Stores the value of milliseconds since 1.1.1970 in the register
 */
+
+
 
 var Jame = function(programLines, debugMode) {
     "use strict";
@@ -35,8 +36,8 @@ var Jame = function(programLines, debugMode) {
         deviceRegister = new Array(16),
         dataRegister = new Array(256),
         dataMemory = new Array(1024),
-        charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ?!,;.:-_=#'+*()[]<>/\\\n";
-    // Init devices and data registers
+        charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ?!,;.:-_=#'+*()[]<>/\\\n",
+        isRunning = false;
     (function() {
         var i = 0;
 
@@ -47,10 +48,9 @@ var Jame = function(programLines, debugMode) {
             dataMemory[i] = 0;
         }
         for (i = 0; i < deviceRegister.length; i += 1) {
-            // Fill devices with template function
             deviceRegister[i] = {
                 in: function(dataValue, dataAddr, dataRegister) {
-                    console.log(dataValue, dataAddr, dataRegister);
+                    console.log("DefaultDevice", dataValue, dataAddr);
                 },
                 out: function() {
                     return -1;
@@ -66,68 +66,18 @@ var Jame = function(programLines, debugMode) {
             console.log("Initialized data register, memory and devices");
         }
     })();
-    /*
-    Util functionality
-    */
-    var Queue = function() {
-        var queueData = new Array();
-        this.pop = function() {
-            return queueData.unshift();
-        }
-        this.push = function(value) {
-            return queueData.push(item);
-        }
-        this.peek = function() {
-            return queueData[0];
-        }
-        this.isEmpty = function() {
-            if (queueData.length == 0)
-                return true;
-            return false;
-        }
-    }
-    var Stack = function() {
-        var stackData = new Array();
-        this.pop = function() {
-            return stackData.pop();
-        }
-        this.push = function(value) {
-            return stackData.push(item);
-        }
-        this.peek = function() {
-            return stackData[stackData.length - 1];
-        }
-        this.isEmpty = function() {
-            if (stackData.length == 0)
-                return true;
-            return false;
-        }
-    }
-    /*
-    Returns the hex string.
-    */
     var getHex = function(intNumber) {
         return intNumber.toString(16);
     }
-    /*
-    Returns the int value.
-    */
     var getInt = function(hexNumber) {
         return parseInt(hexNumber, 16);
     }
-    /*
-    Sets the device callback.
-    deviceCallback(dataValue, dataAddr, dataRegister)
-    */
     var setDevice = function(deviceAddr, device) {
         if (debugMode) {
-            console.log("Updated device for address", toHex(deviceAddr));
+            console.log("Updated device for address", getHex(deviceAddr));
         }
-        setDevice(deviceAddr, device);
+        deviceRegister[deviceAddr] = device;
     }
-    /*
-    Returns the device callback.
-    */
     var getDevice = function(deviceAddr) {
         if (debugMode) {
             console.log("Device data returned for", getHex(deviceAddr));
@@ -150,38 +100,28 @@ var Jame = function(programLines, debugMode) {
         var dataValue = jumpMarkRegister.push(activePointer) - 1;
         setData(dataAddr, dataValue);
         if (debugMode) {
-            console.log("Jump mark for line", getHex(dataValue), "stored in", getHex(dataAddr));
+            console.log("Jump mark", getHex(dataValue), "stored in", getHex(dataAddr));
         }
     }
-    var getMark = function(dataAddr) {
+    var jumpToMark = function(dataAddr) {
         var dataValue = getData(dataAddr);
         if (debugMode) {
-            console.log("Mark for line", getHex(dataValue), "at", getHex(dataAddr), "returned");
+            console.log("Jump to mark at line", getHex(dataValue), "returned");
         }
-        return jumpMarkRegister[dataValue];
+        activePointer = jumpMarkRegister[dataValue];
     }
-    /*
-    Returns the data at the address.
-    */
     var getData = function(dataAddr) {
         if (debugMode) {
             console.log("Data register", getHex(dataAddr), "returned");
         }
         return dataRegister[dataAddr];
     }
-    /*
-    Sets the data at the specific address.
-    */
     var setData = function(dataAddr, dataValue) {
         if (debugMode) {
             console.log("Data register", getHex(dataAddr), "set to", getHex(dataValue));
         }
         dataRegister[dataAddr] = dataValue;
     }
-
-    /*
-    Sends a set of data to the device
-    */
     var sendToDevice = function(deviceAddr, dataAddr) {
         var dataValue = getData(dataAddr);
         var device = getDevice(deviceAddr);
@@ -192,9 +132,6 @@ var Jame = function(programLines, debugMode) {
 
         device.in(dataValue, dataAddr, dataRegister);
     }
-    /*
-    Gets a bit of data from the device
-    */
     var receiveFromDevice = function(deviceAddr, dataAddr) {
         var device = getDevice(deviceAddr);
         var dataValue = device.out();
@@ -204,15 +141,9 @@ var Jame = function(programLines, debugMode) {
         }
         setData(dataAddr, dataValue);
     }
-    /*
-    Returns the active char set.
-    */
     var getCharSet = function() {
         return charSet;
     }
-    /*
-    Executes a line of code.
-    */
     var execute = function() {
         var activeLine = programRegister[activePointer],
             lineParts = activeLine.split(" "),
@@ -227,8 +158,7 @@ var Jame = function(programLines, debugMode) {
             args.push(lineParts[i]);
         }
         if (debugMode) {
-            console.log("Command", command);
-            console.log("Args", args);
+            console.log("Command", command, "Args", args);
         }
         if (command === "ADD" || command === "SUB" || command === "MUL" || command === "DIV" || command === "MOD") {
             var addrX = getInt(args[0]);
@@ -270,7 +200,7 @@ var Jame = function(programLines, debugMode) {
             var addrX = getInt(args[0]);
             var addrY = getInt(args[1]);
 
-            setData(addrY, getData(addrX));
+            setData(addrX, getData(addrY));
         } else if (command === "CMP") {
             var addrX = getInt(args[0]);
             var addrY = getInt(args[1]);
@@ -303,19 +233,41 @@ var Jame = function(programLines, debugMode) {
             storeMark(addrX);
         } else if (command === "JMP") {
             var addrX = getInt(args[0]);
-            var valueX = getData(addrX);
-            var markAddr = getMark(valueX);
+            jumpToMark(addrX);
+        } else if (command === "JIF") {
+            var addrX = getInt(args[0]);
+            var addrY = getInt(args[1]);
+            var valueY = getData(addrY);
 
-            activePointer = markAddr;
+            if (valueY === 1) {
+                jumpToMark(addrX);
+            }
+        } else if (command === "TIM") {
+            var addrX = getInt(args[0]);
+            var valueX = new Date().getTime();
+            setData(addrX, valueX);
         }
     }
     var start = function() {
+        isRunning = true;
+        console.time("Program executed in");
         for (activePointer = 0; activePointer < programRegister.length; activePointer++) {
             if (debugMode) {
                 console.log("Running line", activePointer);
             }
             execute();
         }
+        console.timeEnd("Program executed in");
+        isRunning = false;
+    }
+    var runLine = function(line) {
+        isRunning = true;
+        activePointer = programRegister.push(line) - 1;
+        execute();
+        isRunning = false;
+    }
+    var isRunningCode = function() {
+        return isRunning;
     }
 
     return {
@@ -324,7 +276,8 @@ var Jame = function(programLines, debugMode) {
         getDevice: getDevice,
         setDevice: setDevice,
         register: dataRegister,
-        memory: dataMemory
+        memory: dataMemory,
+        isRunning: isRunningCode
     }
 }
 
@@ -332,5 +285,7 @@ try {
     exports.Jame = Jame;
 }
 catch (err) {
-    console.log("NodeJS module system not detected");
+    console.error("NodeJS module system not detected");
 }
+
+console.log(JameUtils.version);

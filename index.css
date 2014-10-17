@@ -1,0 +1,46 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+}
+textarea {
+    border: 0;
+    background-color: #223;
+    color: #fff;
+    padding: 1em;
+    font-family: Consolas;
+    font-size: 1.1em;
+    margin: 0;
+    display: block;
+    clear: both;
+    box-sizing: border-box;
+    resize: none;
+}
+#codeText {
+    width: 100%;
+    height: 500px;
+}
+#consoleText {
+    width: 100%;
+    height: 425px;
+    background-color: #000;
+    color: #0f0;
+}
+.setting {
+    margin: 0.5em;
+    padding: 0.5em;
+    background-color: #bbb;
+    border: 1px solid black;
+    display: inline-block;
+}
+#settings {
+    box-sizing: border-box;
+    flex: 1;
+}
+.fillvertical {
+    display: flex;
+    flex-direction: column;
+}
+.fillvertical textarea {
+  /* these are the flex items */
+  flex: 1;
+}

@@ -3,18 +3,19 @@
         <h1 id="screen">Key resolver for jameJS console output</h1>
         <input type="number" id="offsetElement" value="0"/>
         <input type="number" id="deviceElement" value="0x00" />
-        <input type="text" id="inputElement"/>
+        <textarea id="inputElement"></textarea>
         <textarea id="mov"></textarea>
         <textarea id="out"></textarea>
         <script>
-            var CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ?!,;.:-_=#'+*()[]<>/\\\n";
+            var charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ?!,;.:-_=#'+*()[]<>/\\\n";
             function resolveKey(char) {
-                for (var i = 0; i < CHAR_SET.length; i++) {
-                    if (CHAR_SET[i] === char) {
+                for (var i = 0; i < charSet.length; i++) {
+                    if (charSet[i] === char) {
                         return i;
                     }
                 }
             }
+
             document.getElementById("inputElement").addEventListener("keyup", function(k) {
                 document.getElementById("mov").value = "";
                 document.getElementById("out").value = "";

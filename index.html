@@ -1,45 +1,82 @@
+<!DOCTYPE html>
 <html>
-<body style="font-family: Consolas">
-    <textarea id="codeText" style="width: 800px; height: 600px; margin: auto; font-family: Consolas; font-size: 1em">// Here goes your code
-MOV 2b 1f
-MOV 2b 1e
-// Test comment
-MOV 2c 1d
-OUT 0 1d</textarea>
-    <textarea id="consoleText" style="width: 800px; height: 600px; margin: auto; font-family: Consolas; font-size: 1em"></textarea>
+<head>
+    <title>jameJS in the browser</title>
+    <link rel="stylesheet" href="index.css" />
+    <script src="jameUtils.js"></script>
+</head>
+<body>
+    <section class"fillvertical">
+    <textarea id="codeText" spellcheck="false" autofocus>// This is a small example program
+// That prints out the characters A - Z
+MOV 0x01 0x00
+MOV 0x00 0x01
+MOV 0x1A 0x02
+MRK 0x03
+OUT 0x00 0x01
+ADD 0x01 0x00
+CPY 0x04 0x01
+CMP 0x04 0x02
+ADD 0x04 0x00
+JIF 0x03 0x04
+MOV 0x54 0x05
+OUT 0x00 0x05</textarea>
+    <textarea id="consoleText" spellcheck="false" readonly></textarea>
     <script>
-    var jameRuntime = null;
-
-    console.log = function(t1, t2, t3, t4, t5) {
-        var line = "";
-        if (t1 !== undefined) {
-            line += t1 + " ";
-        }
-        if (t2 !== undefined) {
-            line += t2 + " ";
-        }
-        if (t3 !== undefined) {
-            line += t3 + " ";
-        }
-        if (t4 !== undefined) {
-            line += t4 + " ";
-        }
-        if (t5 !== undefined) {
-            line += t5 + " ";
-        }
-
-        line += "\n";
-        document.getElementById("consoleText").value += line;
-    };
-
-    function run() {
-        jameRuntime = new Jame(document.getElementById("codeText").value, true);
-        jameRuntime.start();
+    function refreshConsole() {
+        var consoleArea = document.getElementById('consoleText');
+        consoleArea.scrollTop = consoleArea.scrollHeight;
     }
+    function print(msg) {
+        document.getElementById("consoleText").value += msg;
+    }
+
+    var jameRuntime = null;
+    document.getElementById("consoleText").value = JameUtils.version + "\n";
+
+    function removeBlinker() {
+        var consoleElement = document.getElementById("consoleText");
+        if (consoleElement.value.charAt(consoleElement.value.length - 2) === ">") {
+            consoleElement.value = consoleElement.value.substr(0, consoleElement.value.length - 2);
+        }
+    }
+    function consoleBlinker() {
+        if (jameRuntime == null || jameRuntime.isRunning() !== true) {
+            var consoleElement = document.getElementById("consoleText");
+            if (consoleElement.value.charAt(consoleElement.value.length - 2) === ">") {
+                consoleElement.value = consoleElement.value.substr(0, consoleElement.value.length - 2);
+            }
+            else {
+                consoleElement.value += "> ";
+            }
+        }
+        setTimeout(consoleBlinker, 500);
+        refreshConsole();
+    }
+    function run() {
+        removeBlinker();
+        jameRuntime = new Jame(document.getElementById("codeText").value, document.getElementById("check").checked);
+
+        jameRuntime.setDevice(0, {
+            in: function(dataValue, dataAddr, dataRegister){
+                print(jameRuntime.getCharSet().charAt(dataValue));
+            },
+            out: function(){
+                return -1;
+            }
+        });
+        jameRuntime.start();
+        refreshConsole();
+    }
+    document.getElementById("codeText").style.height = window.innerHeight * 0.6 + "px";
+    document.getElementById("consoleText").style.height = window.innerHeight * 0.3 + "px";
+    consoleBlinker();
     </script>
     <script src="jame.js">
     </script>
-
-    <p onclick="run()">Run your code</p>
+    <div id="settings">
+    <section class="setting"><label>Debug Mode</label><input type="checkbox" id="check" value="true"/></section><section class="setting" onclick="run()">Run your code</section>
+</div>
+</section>
 </body>
 </html>
