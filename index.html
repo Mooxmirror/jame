@@ -65,6 +65,14 @@ OUT 0x00 0x05</textarea>
                 return -1;
             }
         });
+        jameRuntime.setDevice(1, {
+            in: function(dataValue, dataAddr, dataRegister) {
+                print(dataValue.toString());
+            },
+            out: function() {
+                return -1;
+            }
+        });
         jameRuntime.start();
         refreshConsole();
     }
