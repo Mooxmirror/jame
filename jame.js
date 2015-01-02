@@ -12,8 +12,8 @@ MOD *    x     %     y // Modulo, stores result in x
 
 CMP *    x           y // Compares the values, stores result in x (0 -> x smaller, 1 -> equal, 2 -> x greater)
 MRK *    x             // Marks the line with the marker adress stored in x
-JMP     x             // Jumps to the marker adress stored in x
-JIF     x           y // Jumps to the marker adress stored in x, when y equals 1
+JMP *    x             // Jumps to the marker adress stored in x
+JIF *    x           y // Jumps to the marker adress stored in x, when y equals 1
 
 LDM *    x           y // Loads data from volatile memory into register
 STM *    x           y // Stores data from register in volatile memory
