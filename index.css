@@ -7,7 +7,7 @@ textarea {
     background-color: #223;
     color: #fff;
     padding: 1em;
-    font-family: Consolas;
+    font-family: monospace;
     font-size: 1.1em;
     margin: 0;
     display: block;
